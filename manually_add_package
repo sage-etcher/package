@@ -9,16 +9,17 @@ VALUES (?, ?, ?, ?, ?);
 '''
 
 TIMESTAMP=$(date -R)
-$BINDIR/package_query "$DATABASE" "$SQL_INSERT" 'package' "$TIMESTAMP" NULL 'directory' '/etc/package'
-$BINDIR/package_query "$DATABASE" "$SQL_INSERT" 'package' "$TIMESTAMP" NULL 'file' '/etc/package/package.conf'
-$BINDIR/package_query "$DATABASE" "$SQL_INSERT" 'package' "$TIMESTAMP" NULL 'file' '$BINDIR/libpackage.sh'
-$BINDIR/package_query "$DATABASE" "$SQL_INSERT" 'package' "$TIMESTAMP" NULL 'file' '$BINDIR/package_check'
-$BINDIR/package_query "$DATABASE" "$SQL_INSERT" 'package' "$TIMESTAMP" NULL 'file' '$BINDIR/package_list'
-$BINDIR/package_query "$DATABASE" "$SQL_INSERT" 'package' "$TIMESTAMP" NULL 'file' '$BINDIR/package_uninstall'
-$BINDIR/package_query "$DATABASE" "$SQL_INSERT" 'package' "$TIMESTAMP" NULL 'file' '$BINDIR/package_init'
-$BINDIR/package_query "$DATABASE" "$SQL_INSERT" 'package' "$TIMESTAMP" NULL 'file' '$BINDIR/package_install'
-$BINDIR/package_query "$DATABASE" "$SQL_INSERT" 'package' "$TIMESTAMP" NULL 'file' '$BINDIR/package_whatprovides'
-$BINDIR/package_query "$DATABASE" "$SQL_INSERT" 'package' "$TIMESTAMP" NULL 'file' '$BINDIR/package_query'
+$BINDIR/package_query "$DATABASE" "$SQL_INSERT" 'package' "$TIMESTAMP" NULL 'directory' "/etc/package"
+$BINDIR/package_query "$DATABASE" "$SQL_INSERT" 'package' "$TIMESTAMP" NULL 'file' "/etc/package/package.conf"
+$BINDIR/package_query "$DATABASE" "$SQL_INSERT" 'package' "$TIMESTAMP" NULL 'file' "$BINDIR/libpackage.sh"
+$BINDIR/package_query "$DATABASE" "$SQL_INSERT" 'package' "$TIMESTAMP" NULL 'file' "$BINDIR/package_check"
+$BINDIR/package_query "$DATABASE" "$SQL_INSERT" 'package' "$TIMESTAMP" NULL 'file' "$BINDIR/package_list"
+$BINDIR/package_query "$DATABASE" "$SQL_INSERT" 'package' "$TIMESTAMP" NULL 'file' "$BINDIR/package_provides"
+$BINDIR/package_query "$DATABASE" "$SQL_INSERT" 'package' "$TIMESTAMP" NULL 'file' "$BINDIR/package_uninstall"
+$BINDIR/package_query "$DATABASE" "$SQL_INSERT" 'package' "$TIMESTAMP" NULL 'file' "$BINDIR/package_init"
+$BINDIR/package_query "$DATABASE" "$SQL_INSERT" 'package' "$TIMESTAMP" NULL 'file' "$BINDIR/package_install"
+$BINDIR/package_query "$DATABASE" "$SQL_INSERT" 'package' "$TIMESTAMP" NULL 'file' "$BINDIR/package_whatprovides"
+$BINDIR/package_query "$DATABASE" "$SQL_INSERT" 'package' "$TIMESTAMP" NULL 'file' "$BINDIR/package_query"
 
 
 
