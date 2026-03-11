@@ -17,6 +17,16 @@ fi
 source $PACKAGE_LIB
 # }}}
 
+# list installed packages
+SQL_WHATPROVIDES='''
+SELECT DISTINCT package
+FROM packages
+WHERE path = ?;
+'''
+
+SEARCH_PATH=$(realpath -es $1)
+$BINDIR/package_query "$DATABASE" "$SQL_WHATPROVIDES" "$SEARCH_PATH"
+
 
 # vim: fdm=marker
 # end of file
