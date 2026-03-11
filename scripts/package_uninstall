@@ -17,6 +17,41 @@ fi
 source $PACKAGE_LIB
 # }}}
 
+# remove physical files
+SQL_REMOVE='''
+DELETE FROM packages
+WHERE package = ?;
+'''
+
+SQL_GET_TYPE='''
+SELECT path
+FROM packages
+WHERE package = ? AND type = ?;
+'''
+
+PACKAGE_NAME=$1
+
+while read -r file_path; do
+    log_verbose "removing file - ${dir_path}"
+    rm -f "$file_path"
+done <<< $BINDIR/package_query "$DATABASE" "$SQL_GET_TYPE" "$PACKAGE_NAME" "file"
+
+while read -r dir_path; do
+    if [ ! -d "$dir_path" ]; then
+        log_verbose "skipping non-existant directory - ${dir_path}"
+        continue
+    fi
+
+    remaining_content=($dir_path/*)
+    if [ ${#remaining_content[@]} -eq 0 ]; then
+        log_verbose "removing empty directory - ${dir_path}"
+        rmdir $dir_path
+    else
+        log_warning "cannot remove $dir_path, directory has children"
+    fi
+done <<< $BINDIR/package_query "$DATABASE" "$SQL_GET_TYPE" "$PACKAGE_NAME" "directory" |sort
+
+$BINDIR/package_query "$DATABASE" "$SQL_REMOVE" "$PACKAGE_NAME"
 
 # vim: fdm=marker
 # end of file
