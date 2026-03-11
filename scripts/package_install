@@ -24,52 +24,10 @@ INSTALL_ROOT=$ROOT_PATH
 TIMESTAMP=$(date -R)
 
 # protected system directories + files
-PROTECTED_DIRS=( # {{{
-    ':'$INSTALL_ROOT'bin:'
-    ':'$INSTALL_ROOT'boot:'
-    ':'$INSTALL_ROOT'boot/efi:'
-    ':'$INSTALL_ROOT'dev:'
-    ':'$INSTALL_ROOT'etc:'
-    ':'$INSTALL_ROOT'home:'
-    ':'$INSTALL_ROOT'lib:'
-    ':'$INSTALL_ROOT'lib32:'
-    ':'$INSTALL_ROOT'lib64:'
-    ':'$INSTALL_ROOT'lost+found:'
-    ':'$INSTALL_ROOT'media:'
-    ':'$INSTALL_ROOT'mnt:'
-    ':'$INSTALL_ROOT'opt:'
-    ':'$INSTALL_ROOT'proc:'
-    ':'$INSTALL_ROOT'root:'
-    ':'$INSTALL_ROOT'run:'
-    ':'$INSTALL_ROOT'sbin:'
-    ':'$INSTALL_ROOT'srv:'
-    ':'$INSTALL_ROOT'sys:'
-    ':'$INSTALL_ROOT'tmp:'
-    ':'$INSTALL_ROOT'usr:'
-    ':'$INSTALL_ROOT'usr/bin:'
-    ':'$INSTALL_ROOT'usr/games:'
-    ':'$INSTALL_ROOT'usr/include:'
-    ':'$INSTALL_ROOT'usr/lib:'
-    ':'$INSTALL_ROOT'usr/lib64:'
-    ':'$INSTALL_ROOT'usr/libexec:'
-    ':'$INSTALL_ROOT'usr/local:'
-    ':'$INSTALL_ROOT'usr/local/bin:'
-    ':'$INSTALL_ROOT'usr/local/etc:'
-    ':'$INSTALL_ROOT'usr/local/games:'
-    ':'$INSTALL_ROOT'usr/local/include:'
-    ':'$INSTALL_ROOT'usr/local/lib:'
-    ':'$INSTALL_ROOT'usr/local/lib64:'
-    ':'$INSTALL_ROOT'usr/local/libexec:'
-    ':'$INSTALL_ROOT'usr/local/sbin:'
-    ':'$INSTALL_ROOT'usr/local/share:'
-    ':'$INSTALL_ROOT'usr/local/src:'
-    ':'$INSTALL_ROOT'usr/sbin:'
-    ':'$INSTALL_ROOT'usr/share:'
-    ':'$INSTALL_ROOT'usr/src:'
-    ':'$INSTALL_ROOT'usr/tmp:'
-    ':'$INSTALL_ROOT'var:'
-    ':'$INSTALL_ROOT':'
-) # }}}
+protected_dirs=()
+while read -r protected_dir; do
+    protected_dirs+=(":$protected_dir:")
+done < $PROTECTED_FOLDERS_FILE
 
 # stage 1 - collect information about packages
 log_debug "stage 1: collecting information"
@@ -87,7 +45,7 @@ else
         package_dir=$(realpath -es "$raw_package_dir")
         install_dir=$(realpath -ms "${package_dir/#$PACKAGE_ROOT/$INSTALL_ROOT}")
 
-        if [[ "${PROTECTED_DIRS[@]}" =~ ":$install_dir:" ]]; then
+        if [[ "${protected_dirs[@]}" =~ ":$install_dir:" ]]; then
             if [ -d "$install_dir" ]; then
                 log_verbose "skipping system directory - $install_dir"
                 continue

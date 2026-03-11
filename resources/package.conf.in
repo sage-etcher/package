@@ -2,6 +2,8 @@
 
 PACKAGE_LIB='@LIBDIR@/libpackage.sh'
 DATABASE='@VARDIR@/db/package/package.db'
+PROTECTED_FOLDERS_FILE='/etc/package/protected_folders'
+
 BINDIR='@BINDIR@'
 
 ROOT_PATH='/'
