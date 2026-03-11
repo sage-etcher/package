@@ -166,8 +166,9 @@ while read -r line; do
     log_verbose "installing file - $install_file"
     install $install_flags "$package_file" "$install_file"
 
+    checksum=$($CHECKSUM_PROG "$install_file")
     $BINDIR/package_query "$DATABASE" "$SQL_INSERT" \
-            "$PACKAGE_NAME" "$TIMESTAMP" "$install_file" "file" NULL
+            "$PACKAGE_NAME" "$TIMESTAMP" "$install_file" "file" "$checksum"
 
 done < $FILE_CACHE_FILE
 

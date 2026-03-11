@@ -17,6 +17,37 @@ fi
 source $PACKAGE_LIB
 # }}}
 
+# check all files against checksum values
+SQL_CHECKSUM='''
+SELECT path,checksum,package
+FROM packages
+WHERE type = "file";
+'''
+
+while read -r entry; do
+    file_path=$(echo "$entry" |awk -F, '{ print $1 }')
+    checksum=$(echo "$entry" |awk -F, '{ print $2 }')
+    package=$(echo "$entry" |awk -F, '{ print $3 }')
+
+    if [ "x$checksum" == "x(null)" ]; then
+        log_verbose "skipping file, no checksum - $file_path"
+        continue;
+    fi
+
+    if [ ! -f "$file_path" ]; then
+        log_error "file does not exist - $file_path"
+        continue
+    fi
+
+    new_checksum=$($CHECKSUM_PROG "$file_path")
+    if [ "x$new_checksum" == "x$checksum" ]; then
+        log_verbose "match - $package:$file_path"
+    else
+        log_error "checksum failed - $package:$file_path"
+    fi
+
+done <<< $($BINDIR/package_query "$DATABASE" "$SQL_CHECKSUM")
+
 
 # vim: fdm=marker
 # end of file

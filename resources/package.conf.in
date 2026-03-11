@@ -7,6 +7,7 @@ PROTECTED_FOLDERS_FILE='/etc/package/protected_folders'
 BINDIR='@BINDIR@'
 
 ROOT_PATH='/'
+CHECKSUM_PROG=md5sum
 
 # 0 fatal errors only
 # 1 error and above
