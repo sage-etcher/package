@@ -15,7 +15,7 @@ CHECKSUM_PROG=md5sum
 # 3 info/terse
 # 4 verbose
 # 5 debug
-LOG_LEVEL=5
+LOG_LEVEL=4
 
 export PACKAGE_LIB DATABASE ROOT_PATH BINDIR LOG_LEVEL
 
