@@ -1,0 +1,217 @@
+#!/usr/bin/env bash
+
+# load config
+# {{{
+PACKAGE_CONF='/etc/package/package.conf'
+if [ ! -f "$PACKAGE_CONF" ]; then
+    echo 'error: cannot find $PACKAGE_CONF' >&2
+    exit 1
+fi
+source $PACKAGE_CONF
+
+# load library
+if [ -z "$PACKAGE_LIB" -o ! -f "$PACKAGE_LIB" ]; then
+    echo 'error: cannot load shared lib PACKAGE_LIB, check package.conf' >&2
+    exit 1
+fi
+source $PACKAGE_LIB
+# }}}
+
+PACKAGE_NAME=$1
+PACKAGE_ROOT=$(readlink -es ${2:-.})'/'
+INSTALL_ROOT=$ROOT_PATH
+
+TIMESTAMP=$(date -R)
+
+# protected system directories + files
+PROTECTED_DIRS=( # {{{
+    ':'$INSTALL_ROOT'bin:'
+    ':'$INSTALL_ROOT'boot:'
+    ':'$INSTALL_ROOT'boot/efi:'
+    ':'$INSTALL_ROOT'dev:'
+    ':'$INSTALL_ROOT'etc:'
+    ':'$INSTALL_ROOT'home:'
+    ':'$INSTALL_ROOT'lib:'
+    ':'$INSTALL_ROOT'lib32:'
+    ':'$INSTALL_ROOT'lib64:'
+    ':'$INSTALL_ROOT'lost+found:'
+    ':'$INSTALL_ROOT'media:'
+    ':'$INSTALL_ROOT'mnt:'
+    ':'$INSTALL_ROOT'opt:'
+    ':'$INSTALL_ROOT'proc:'
+    ':'$INSTALL_ROOT'root:'
+    ':'$INSTALL_ROOT'run:'
+    ':'$INSTALL_ROOT'sbin:'
+    ':'$INSTALL_ROOT'srv:'
+    ':'$INSTALL_ROOT'sys:'
+    ':'$INSTALL_ROOT'tmp:'
+    ':'$INSTALL_ROOT'usr:'
+    ':'$INSTALL_ROOT'usr/bin:'
+    ':'$INSTALL_ROOT'usr/games:'
+    ':'$INSTALL_ROOT'usr/include:'
+    ':'$INSTALL_ROOT'usr/lib:'
+    ':'$INSTALL_ROOT'usr/lib64:'
+    ':'$INSTALL_ROOT'usr/libexec:'
+    ':'$INSTALL_ROOT'usr/local:'
+    ':'$INSTALL_ROOT'usr/local/bin:'
+    ':'$INSTALL_ROOT'usr/local/etc:'
+    ':'$INSTALL_ROOT'usr/local/games:'
+    ':'$INSTALL_ROOT'usr/local/include:'
+    ':'$INSTALL_ROOT'usr/local/lib:'
+    ':'$INSTALL_ROOT'usr/local/lib64:'
+    ':'$INSTALL_ROOT'usr/local/libexec:'
+    ':'$INSTALL_ROOT'usr/local/sbin:'
+    ':'$INSTALL_ROOT'usr/local/share:'
+    ':'$INSTALL_ROOT'usr/local/src:'
+    ':'$INSTALL_ROOT'usr/sbin:'
+    ':'$INSTALL_ROOT'usr/share:'
+    ':'$INSTALL_ROOT'usr/src:'
+    ':'$INSTALL_ROOT'usr/tmp:'
+    ':'$INSTALL_ROOT'var:'
+    ':'$INSTALL_ROOT':'
+) # }}}
+
+# stage 1 - collect information about packages
+log_debug "stage 1: collecting information"
+
+DIR_CACHE_FILE='.package-dir.cache'
+TMP_DIR_CACHE_FILE=".tmp$DIR_CACHE_FILE"
+if [ -f $DIR_CACHE_FILE ]; then
+    log_verbose "using cache file - $DIR_CACHE_FILE"
+else
+    if [ -f "$TMP_DIR_CACHE_FILE" ]; then 
+        rm "$TMP_DIR_CACHE_FILE"
+    fi
+
+    while read -r raw_package_dir; do
+        package_dir=$(realpath -es "$raw_package_dir")
+        install_dir=$(realpath -ms "${package_dir/#$PACKAGE_ROOT/$INSTALL_ROOT}")
+
+        if [[ "${PROTECTED_DIRS[@]}" =~ ":$install_dir:" ]]; then
+            if [ -d "$install_dir" ]; then
+                log_verbose "skipping system directory - $install_dir"
+                continue
+            else
+                log_fatal "system directory does not exist - $install_dir"
+                exit 1
+            fi
+        fi
+
+        log_verbose "caching directory - $package_dir -> $install_dir"
+        echo "$package_dir:$install_dir" >> "$TMP_DIR_CACHE_FILE"
+
+    done <<< $(find $PACKAGE_ROOT/* -type d)
+    mv "$TMP_DIR_CACHE_FILE" "$DIR_CACHE_FILE"
+fi
+
+FILE_CACHE_FILE='.package-file.cache'
+TMP_FILE_CACHE_FILE=".tmp$FILE_CACHE_FILE"
+if [ -f $FILE_CACHE_FILE ]; then
+    log_verbose "using cache file - $FILE_CACHE_FILE"
+else
+    if [ -f "$TMP_FILE_CACHE_FILE" ]; then 
+        rm "$TMP_FILE_CACHE_FILE"
+    fi
+
+    while read -r raw_package_file; do
+        package_file=$(realpath -es "$raw_package_file")
+        install_file=$(realpath -ms "${package_file/#$PACKAGE_ROOT/$INSTALL_ROOT}")
+
+        # disallow hardlinked files
+        numlinks=$(ls -ld "$package_file" |awk '{print $2}')
+        if [ $numlinks -gt 1 ]; then
+            log_error "skipping hardlink (unimplimented) - $package_file"
+            continue
+        fi
+
+        log_verbose "caching file - $package_file -> $install_file"
+        echo "$package_file:$install_file" >> "$TMP_FILE_CACHE_FILE"
+
+    done <<< $(find $PACKAGE_ROOT/* -type f)
+    mv "$TMP_FILE_CACHE_FILE" "$FILE_CACHE_FILE"
+fi
+
+
+if [ ! -f $DIR_CACHE_FILE ]; then
+    log_fatal "failed to create directory cache"
+fi
+
+if [ ! -f $FILE_CACHE_FILE ]; then
+    log_fatal "failed to create file cache"
+fi
+
+if [ ! -f $DIR_CACHE_FILE -o ! -f $FILE_CACHE_FILE ]; then
+    exit 1
+fi
+
+# stage 2 - check for collisions
+log_debug "stage 2: checking for colisions"
+
+while read -r line; do
+    package_dir=${line%%:*}
+    install_dir=${line##*:}
+
+    if [ ! -e "$install_dir" ]; then
+        continue
+    fi
+
+    if [ -e "$install_dir" -a ! -d "$install_dir" ]; then
+        filetype=$(file -b "$install_dir")
+        log_error "expected directory, but got $filetype - $install_dir"
+        exit 1
+    fi
+
+    package_stat=$(stat --printf='%a %U:%G' "$package_dir")
+    install_stat=$(stat --printf='%a %U:%G' "$install_dir")
+    if [ "x$package_stat" != "x$install_stat" ]; then
+        log_warning "incorrect permissions, expected $package_stat - $install_dir"
+    fi
+
+done < $DIR_CACHE_FILE
+
+while read -r line; do
+    package_file=${line%%:*}
+    install_file=${line##*:}
+
+    if [ -e "$install_file" ]; then
+        log_fatal "colision found - $install_file"
+        exit 1
+    fi
+done < $FILE_CACHE_FILE
+
+# stage 3 - install package
+log_debug "stage 3: installing package"
+
+SQL_INSERT='''
+INSERT INTO packages (package, timestamp, path, type, checksum)
+VALUES (?, ?, ?, ?, ?);
+'''
+
+while read -r line; do
+    package_dir=${line%%:*}
+    install_dir=${line##*:}
+
+    install_flags=$(stat --printf='-m %a -o %u -g %g' "$package_dir")
+    log_verbose "installing directory - $install_dir"
+    install -d $install_flags "$install_dir"
+
+    $BINDIR/package_query "$DATABASE" "$SQL_INSERT" \
+            "$PACKAGE_NAME" "$TIMESTAMP" "$install_dir" "directory" NULL
+
+done < $DIR_CACHE_FILE
+
+while read -r line; do
+    package_file=${line%%:*}
+    install_file=${line##*:}
+
+    install_flags=$(stat --printf='-m %a -o %u -g %g' "$package_file")
+    log_verbose "installing file - $install_file"
+    install $install_flags "$package_file" "$install_file"
+
+    $BINDIR/package_query "$DATABASE" "$SQL_INSERT" \
+            "$PACKAGE_NAME" "$TIMESTAMP" "$install_file" "file" NULL
+
+done < $FILE_CACHE_FILE
+
+# vim: ts=4 sts=4 sw=4 et fdm=marker
+# end of file

@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+PACKAGE_LIB='@LIBDIR@/libpackage.sh'
+DATABASE='@VARDIR@/db/package/package.db'
+BINDIR='@BINDIR@'
+
+ROOT_PATH='/'
+
+# 0 fatal errors only
+# 1 error and above
+# 2 warnings
+# 3 info/terse
+# 4 verbose
+# 5 debug
+LOG_LEVEL=5
+
+export PACKAGE_LIB DATABASE ROOT_PATH BINDIR LOG_LEVEL
+
+# end of file
