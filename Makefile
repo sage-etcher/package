@@ -29,6 +29,7 @@ install:
 	install -m 755 scripts/package_init         $(DESTDIR)/$(BINDIR)/
 	install -m 755 scripts/package_install      $(DESTDIR)/$(BINDIR)/
 	install -m 755 scripts/package_list         $(DESTDIR)/$(BINDIR)/
+	install -m 755 scripts/package_files        $(DESTDIR)/$(BINDIR)/
 	install -m 755 scripts/package_uninstall    $(DESTDIR)/$(BINDIR)/
 	install -m 755 scripts/package_whatprovides $(DESTDIR)/$(BINDIR)/
 	install -m 644 scripts/libpackage.sh        $(DESTDIR)/$(LIBDIR)/
@@ -40,6 +41,7 @@ uninstall:
 	rm -f $(DESTDIR)/$(BINDIR)/package_init
 	rm -f $(DESTDIR)/$(BINDIR)/package_install
 	rm -f $(DESTDIR)/$(BINDIR)/package_list
+	rm -f $(DESTDIR)/$(BINDIR)/package_files
 	rm -f $(DESTDIR)/$(BINDIR)/package_uninstall
 	rm -f $(DESTDIR)/$(BINDIR)/package_whatprovides
 	rm -f $(DESTDIR)/$(LIBDIR)/libpackage.sh

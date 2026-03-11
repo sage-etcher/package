@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+# load config
+# {{{
+PACKAGE_CONF='/etc/package/package.conf'
+if [ ! -f "$PACKAGE_CONF" ]; then
+    echo 'error: cannot find $PACKAGE_CONF' >&2
+    exit 1
+fi
+source $PACKAGE_CONF
+
+# load library
+if [ -z "$PACKAGE_LIB" -o ! -f "$PACKAGE_LIB" ]; then
+    echo 'error: cannot load shared lib PACKAGE_LIB, check package.conf' >&2
+    exit 1
+fi
+source $PACKAGE_LIB
+# }}}
+
+# list files installed by packages
+SQL_FILES='''
+SELECT path
+FROM packages
+WHERE package = ?;
+'''
+
+PACKAGE_NAME=$1
+
+$BINDIR/package_query "$DATABASE" "$SQL_FILES" "$PACKAGE_NAME"
+
+# vim: fdm=marker
+# end of file
