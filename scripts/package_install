@@ -21,6 +21,9 @@ PACKAGE_NAME=$1
 PACKAGE_ROOT=$(readlink -es ${2:-.})'/'
 INSTALL_ROOT=$ROOT_PATH
 
+PACKAGE_DB_ONLY="${PACKAGE_DB_ONLY:-n}"
+PACKAGE_OVERWRITE="${PACKAGE_OVERWRITE:-n}"
+
 TIMESTAMP=$(date -R)
 
 # protected system directories + files
@@ -131,9 +134,17 @@ while read -r line; do
     package_file=${line%%:*}
     install_file=${line##*:}
 
+    if [ "x$PACKAGE_DB_ONLY" == "xy" ]; then
+        continue;
+    fi
+
     if [ -e "$install_file" ]; then
-        log_fatal "colision found - $install_file"
-        exit 1
+        if [ "x$PACKAGE_OVERWRITE" == "xy" ]; then
+            log_warning "colision found, ignored (PACKAGE_OVERWRITE) - $install_file"
+        else
+            log_fatal "colision found - $install_file"
+            exit 1
+        fi
     fi
 done < $FILE_CACHE_FILE
 
@@ -149,9 +160,13 @@ while read -r line; do
     package_dir=${line%%:*}
     install_dir=${line##*:}
 
-    install_flags=$(stat --printf='-m %a -o %u -g %g' "$package_dir")
-    log_verbose "installing directory - $install_dir"
-    install -d $install_flags "$install_dir"
+    if [ "x$PACKAGE_DB_ONLY" == "xn" ]; then
+        install_flags=$(stat --printf='-m %a -o %u -g %g' "$package_dir")
+        log_verbose "installing directory - $install_dir"
+        install -d $install_flags "$install_dir"
+    else
+        log_verbose "skipping directory (PACKAGE_DB_ONLY) - $install_dir"
+    fi
 
     $BINDIR/package_query "$DATABASE" "$SQL_INSERT" \
             "$PACKAGE_NAME" "$TIMESTAMP" "$install_dir" "directory" NULL
@@ -162,11 +177,23 @@ while read -r line; do
     package_file=${line%%:*}
     install_file=${line##*:}
 
-    install_flags=$(stat --printf='-m %a -o %u -g %g' "$package_file")
-    log_verbose "installing file - $install_file"
-    install $install_flags "$package_file" "$install_file"
+    if [ "x$PACKAGE_DB_ONLY" == "xn" ]; then
+        install_flags=$(stat --printf='-m %a -o %u -g %g' "$package_file")
 
-    checksum=$($CHECKSUM_PROG "$install_file")
+        if [ "x$PACKAGE_OVERWRITE" == "xy" -a -f "$install_file" ]; then
+            log_verbose "overwritting file (PACKAGE_OVERWRITE) - $install_file"
+            rm -f "$install_file"
+        else
+            log_verbose "installing file - $install_file"
+        fi
+
+        install $install_flags "$package_file" "$install_file"
+        checksum=$($CHECKSUM_PROG "$install_file")
+    else
+        log_verbose "skipping file (PACKAGE_DB_ONLY) - $install_file"
+        checksum='(null)'
+    fi
+
     $BINDIR/package_query "$DATABASE" "$SQL_INSERT" \
             "$PACKAGE_NAME" "$TIMESTAMP" "$install_file" "file" "$checksum"
 
