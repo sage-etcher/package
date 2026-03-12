@@ -31,7 +31,7 @@ sudo make install
 ```sh
 make
 make destdir.conf DESTDIR=`pwd`/_install
-sudo make install      DESTDIR=`pwd`/_install
+sudo make install DESTDIR=`pwd`/_install
 sudo PACKAGE_CONF=destdir.conf ./_install/usr/local/bin/package_init
 sudo PACKAGE_CONF=destdir.conf ./_install/usr/local/bin/package_install package-1.0 ./_install
 ```
