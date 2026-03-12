@@ -28,6 +28,7 @@ install:
 	install -m 755 package_query                $(DESTDIR)/$(BINDIR)/
 	install -m 755 scripts/package_check        $(DESTDIR)/$(BINDIR)/
 	install -m 755 scripts/package_init         $(DESTDIR)/$(BINDIR)/
+	install -m 755 scripts/package_search       $(DESTDIR)/$(BINDIR)/
 	install -m 755 scripts/package_install      $(DESTDIR)/$(BINDIR)/
 	install -m 755 scripts/package_list         $(DESTDIR)/$(BINDIR)/
 	install -m 755 scripts/package_provides     $(DESTDIR)/$(BINDIR)/
@@ -42,6 +43,7 @@ uninstall:
 	rm -f $(DESTDIR)/$(BINDIR)/package_check
 	rm -f $(DESTDIR)/$(BINDIR)/package_init
 	rm -f $(DESTDIR)/$(BINDIR)/package_install
+	rm -f $(DESTDIR)/$(BINDIR)/package_search
 	rm -f $(DESTDIR)/$(BINDIR)/package_list
 	rm -f $(DESTDIR)/$(BINDIR)/package_provides
 	rm -f $(DESTDIR)/$(BINDIR)/package_uninstall
