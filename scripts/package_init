@@ -2,9 +2,9 @@
 
 # load config
 # {{{
-PACKAGE_CONF='/etc/package/package.conf'
+PACKAGE_CONF="${PACKAGE_CONF:-/etc/package/package.conf}"
 if [ ! -f "$PACKAGE_CONF" ]; then
-    echo 'error: cannot find $PACKAGE_CONF' >&2
+    echo "error: cannot find $PACKAGE_CONF" >&2
     exit 1
 fi
 source $PACKAGE_CONF

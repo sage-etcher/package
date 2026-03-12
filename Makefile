@@ -16,8 +16,8 @@ build: package_query package.conf
 clean:
 	rm -f package_query.o
 	rm -f package_query
-	rm -f package.conf
-	rm -f .tmp.package.conf
+	rm -f package.conf .tmp.package.conf
+	rm -f destdir.conf .tmp.destdir.conf
 
 install:
 	install -d -m 755 $(DESTDIR)/$(ETCDIR)/package/
@@ -61,6 +61,13 @@ package.conf: resources/package.conf.in
 	sed -i "s,@LIBDIR@,$(LIBDIR),g" .tmp.$@
 	sed -i "s,@ETCDIR@,$(ETCDIR),g" .tmp.$@
 	sed -i "s,@VARDIR@,$(VARDIR),g" .tmp.$@
+	mv .tmp.$@ $@
+
+destdir.conf: package.conf
+	cp $< .tmp.$@
+	sed -i "s,$(BINDIR),$(DESTDIR)/&," .tmp.$@
+	sed -i "s,$(LIBDIR),$(DESTDIR)/&," .tmp.$@
+	sed -i "s,$(ETCDIR),$(DESTDIR)/&," .tmp.$@
 	mv .tmp.$@ $@
 
 # vim: noet
