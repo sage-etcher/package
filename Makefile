@@ -65,12 +65,5 @@ package.conf: resources/package.conf.in
 	sed -i "s,@VARDIR@,$(VARDIR),g" .tmp.$@
 	mv .tmp.$@ $@
 
-destdir.conf: package.conf
-	cp $< .tmp.$@
-	sed -i "s,$(BINDIR),$(DESTDIR)/&," .tmp.$@
-	sed -i "s,$(LIBDIR),$(DESTDIR)/&," .tmp.$@
-	sed -i "s,$(ETCDIR),$(DESTDIR)/&," .tmp.$@
-	mv .tmp.$@ $@
-
 # vim: noet
 # end of file
