@@ -22,17 +22,17 @@ Simple DESTDIR based package manager.
 ## Build
 
 ```sh
-$ make
-# make install
+make
+sudo make install
 ```
 
 ## Build & Register self in Package Manager
 
 ```sh
-$ make
-$ make destdir.conf DESTDIR=`pwd`/_install
-# make install      DESTDIR=`pwd`/_install
-# PACKAGE_CONF=destdir.conf ./_install/usr/local/bin/package_init
-# PACKAGE_CONF=destdir.conf ./_install/usr/local/bin/package_install package-1.0 ./_install
+make
+make destdir.conf DESTDIR=`pwd`/_install
+sudo make install      DESTDIR=`pwd`/_install
+sudo PACKAGE_CONF=destdir.conf ./_install/usr/local/bin/package_init
+sudo PACKAGE_CONF=destdir.conf ./_install/usr/local/bin/package_install package-1.0 ./_install
 ```
 
